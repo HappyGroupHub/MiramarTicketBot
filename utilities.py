@@ -1,4 +1,5 @@
 """This python file will handle some extra functions."""
+import json
 import sys
 from os.path import exists
 
@@ -76,6 +77,50 @@ def read_config():
         print(
             "An error occurred while reading config.yml, please check if the file is corrected filled.\n"
             "If the problem can't be solved, consider delete config.yml and restart the program.\n")
+        sys.exit()
+
+
+def cookies_file_generator():
+    """Generate the template of cookies files"""
+    with open('cookies.json', 'w', encoding="utf8") as f:
+        f.write("""[
+    {
+        "name": "__RequestVerificationToken",
+        "value": "",
+        "domain": "www.miramarcinemas.tw"
+    },
+    {
+        "name": "ASP.NET_SessionId",
+        "value": "",
+        "domain": "www.miramarcinemas.tw"
+    }
+]"""
+                )
+    sys.exit()
+
+
+def read_cookies():
+    """Read cookies file.
+
+    Check if cookies file exists, if not, create one.
+    if exists, read cookies file and return cookies with list type.
+
+    :rtype: list
+    """
+    if not exists('./cookies.json'):
+        print(
+            "Cookies file not found, please login manually then copy cookies value to cookies.json")
+        with open('cookies.json', 'w', encoding="utf8"):
+            cookies_file_generator()
+        sys.exit()
+    try:
+        with open('cookies.json', 'r', encoding="utf8") as file:
+            cookies = json.loads(file.read())
+            return cookies
+    except (KeyError, TypeError):
+        print(
+            "An error occurred while reading cookies.json, please check if the file is corrected filled.\n"
+            "If the problem can't be solved, consider delete cookies.json and restart the program.\n")
         sys.exit()
 
 

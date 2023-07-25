@@ -1,5 +1,4 @@
 """This python file is the main file of the program."""
-import json
 import time
 
 from selenium import webdriver
@@ -85,18 +84,16 @@ def driver_get_background_color(locator):
 
 def login():
     driver.get('https://www.miramarcinemas.tw/Member/Login')
-    with open('cookies.json', 'r', encoding="utf8") as file:
-        cookies = json.loads(file.read())
+    cookies = utils.read_cookies()
     for cookie in cookies:
         driver.add_cookie(cookie)
     driver.refresh()
-    alert = driver.switch_to.alert
-    alert.accept()
     try:
-        WebDriverWait(driver, 1).until(ec.presence_of_element_located(
-            (By.XPATH, "/html/body/div[1]/section[1]/div/ul[2]/li[2]/a")))
+        alert = driver.switch_to.alert
+        alert.accept()
     except TimeoutException:
-        print("Login Failed, cookies might not be correct, please check cookies.json.")
+        print(
+            "Login Failed, cookies might not be correct or expired, please login manually then copy cookies value to cookies.json")
         driver.quit()
     print('-------------------------------------')
     print("Login Success!")
@@ -106,6 +103,7 @@ def login():
 def grab_tickets():
     driver.get(
         'https://www.miramarcinemas.tw/Booking/TicketType?id=0100000872&session=299242')  # 46
+    print('-------------------------------------')
     if config.get("imax_adults") > 0:
         driver_select((By.ID, "ticket_type_select_0149"), config.get("imax_adults"))
         print(f"Imax_adults tickets: {config.get('imax_adults')}")
@@ -120,6 +118,7 @@ def grab_tickets():
         print(f"Imax_adults tickets: {config.get('imax_disabled')}")
     print(
         f'Total tickets: {config["imax_adults"] + config["imax_students"] + config["imax_seniors"] + config["imax_disabled"]}')
+    print('-------------------------------------')
     driver_click(
         (By.XPATH, "/html/body/div[1]/section[3]/section/div/div/div[2]/form/div[5]/label"))
     seats = utils.get_seats()
