@@ -30,6 +30,11 @@ imax_disabled: 0
 seats:
   - 'G23'
   - 'G24'
+  
+# Invoice settings (optional)
+# Invoice number should start with / and contains 7 character behind.
+# Example: /A123456
+invoice: ''
 
 # Headless mode
 # If you want to run this script in headless mode, please set this to true.
@@ -63,6 +68,7 @@ def read_config():
                 'imax_seniors': data['imax_seniors'],
                 'imax_disabled': data['imax_disabled'],
                 'seats': data['seats'],
+                'invoice': data['invoice'],
                 'headless': data['headless']
             }
             return config
