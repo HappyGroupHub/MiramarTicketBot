@@ -15,9 +15,9 @@ def config_file_generator():
 # | Made by LD (MIT License)         |
 # ++--------------------------------++
 
-# Login information
-username: ''
-password: ''
+# Login instructions
+# Please log in manually on your local browser first 
+# Then copy cookies value to cookies.json
 
 # Tickets selection
 # Please enter the amount of ticket you want to book.
@@ -62,8 +62,6 @@ def read_config():
         with open('config.yml', 'r', encoding="utf8") as f:
             data = yaml.load(f, Loader=SafeLoader)
             config = {
-                'username': data['username'],
-                'password': data['password'],
                 'imax_adults': data['imax_adults'],
                 'imax_students': data['imax_students'],
                 'imax_seniors': data['imax_seniors'],
