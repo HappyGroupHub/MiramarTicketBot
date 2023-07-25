@@ -1,0 +1,13 @@
+# Config File
+config.yml
+cookies.json
+
+# IDE Files and Environment
+.idea
+__pycache__
+venv
+
+# PyInstaller
+*.spec
+build
+dist
