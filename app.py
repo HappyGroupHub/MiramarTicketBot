@@ -1,8 +1,9 @@
 """This python file is the main file of the program."""
+import sys
 import time
 
 from selenium import webdriver
-from selenium.common import TimeoutException
+from selenium.common import TimeoutException, NoAlertPresentException, NoSuchElementException
 from selenium.webdriver import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as ec
@@ -19,6 +20,8 @@ if config.get("headless"):
 driver = webdriver.Chrome(options=options)
 driver.maximize_window()
 
+wait = WebDriverWait(driver, 10)
+
 
 def driver_send_keys(locator, key):
     """Send keys to element.
@@ -26,7 +29,7 @@ def driver_send_keys(locator, key):
     :param locator: Locator of element.
     :param key: Keys to send.
     """
-    WebDriverWait(driver, 10).until(ec.presence_of_element_located(locator)).send_keys(key)
+    wait.until(ec.presence_of_element_located(locator)).send_keys(key)
 
 
 def driver_click(locator):
@@ -34,7 +37,7 @@ def driver_click(locator):
 
     :param locator: Locator of element.
     """
-    WebDriverWait(driver, 10).until(ec.presence_of_element_located(locator)).click()
+    wait.until(ec.presence_of_element_located(locator)).click()
 
 
 def driver_select(locator, select_value, select_by='index'):
@@ -44,7 +47,7 @@ def driver_select(locator, select_value, select_by='index'):
     :param select_value: Value to select.
     :param select_by: Select by index, value or visible_text. Default is index.
     """
-    select = Select(WebDriverWait(driver, 10).until(ec.presence_of_element_located(locator)))
+    select = Select(wait.until(ec.presence_of_element_located(locator)))
     if select_by == 'index':
         select.select_by_index(select_value)
     elif select_by == 'value':
@@ -59,7 +62,7 @@ def driver_screenshot(locator, path):
     :param locator: Locator of element.
     :param path: Path to save screenshot.
     """
-    WebDriverWait(driver, 10).until(ec.presence_of_element_located(locator)).screenshot(path)
+    wait.until(ec.presence_of_element_located(locator)).screenshot(path)
 
 
 def driver_get_text(locator):
@@ -68,7 +71,7 @@ def driver_get_text(locator):
     :param locator: Locator of element.
     :return: Text of element.
     """
-    return WebDriverWait(driver, 10).until(ec.presence_of_element_located(locator)).text
+    return wait.until(ec.presence_of_element_located(locator)).text
 
 
 def driver_get_background_color(locator):
@@ -77,8 +80,7 @@ def driver_get_background_color(locator):
     :param locator: Locator of element.
     :return: Background color of element.
     """
-    return WebDriverWait(driver, 10).until(
-        ec.presence_of_element_located(locator)).value_of_css_property(
+    return wait.until(ec.presence_of_element_located(locator)).value_of_css_property(
         'background-color')
 
 
@@ -91,18 +93,38 @@ def login():
     try:
         alert = driver.switch_to.alert
         alert.accept()
-    except TimeoutException:
+    except (TimeoutException, NoAlertPresentException):
         print(
             "Login Failed, cookies might not be correct or expired, please login manually then copy cookies value to cookies.json")
         driver.quit()
+        sys.exit()
     print('-------------------------------------')
     print("Login Success!")
     grab_tickets()
 
 
 def grab_tickets():
-    driver.get(
-        'https://www.miramarcinemas.tw/Booking/TicketType?id=0100000872&session=299242')  # 46
+    driver.get('https://www.miramarcinemas.tw/Timetable/Index?cinema=imax')
+    while True:
+        try:
+            driver.find_element(By.XPATH, f"//*[contains(text(), '{config.get('date')}')]").click()
+            break
+        except (TimeoutException, NoSuchElementException):
+            time.sleep(1)
+            driver.refresh()
+    try:
+        selected_time = driver.find_element(By.XPATH,
+                                            f"//div[contains(@class, '{config['cn_date']}')]"
+                                            f"//a[contains(text(), '{config['time']}')]")
+        driver.get(selected_time.get_attribute('href'))
+    except (TimeoutException, NoSuchElementException):
+        print('Time not available, please select manually.')
+        while True:
+            try:
+                wait.until(ec.url_contains('https://www.miramarcinemas.tw/Booking/'))
+                break
+            except TimeoutException:
+                continue
     print('-------------------------------------')
     if config.get("imax_adults") > 0:
         driver_select((By.ID, "ticket_type_select_0149"), config.get("imax_adults"))
