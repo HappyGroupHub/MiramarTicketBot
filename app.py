@@ -97,8 +97,14 @@ def login():
     except (TimeoutException, NoAlertPresentException):
         print(
             "Login Failed, cookies might not be correct or expired, please login manually then copy cookies value to cookies.json")
-        driver.quit()
-        sys.exit()
+        # driver.quit()
+        # sys.exit()
+        driver.get('https://www.miramarcinemas.tw/Member/Login')
+        driver_send_keys((By.ID, "Account"), '123')
+        driver_send_keys((By.ID, "Password"), '123')
+        time.sleep(1)
+        driver_send_keys((By.ID, "recaptcha-anchor"), Keys.SPACE)
+        time.sleep(10000)
     print('-------------------------------------')
     print("Login Success!")
     grab_tickets()
@@ -176,6 +182,6 @@ def grab_tickets():
 
 if __name__ == "__main__":
     login()
-    time.sleep(9999999999)
+    time.sleep(999999)
     print('Time out, quit.')
     driver.quit()
