@@ -2,6 +2,7 @@
 import sys
 import time
 
+from playsound import playsound
 from selenium import webdriver
 from selenium.common import TimeoutException, NoAlertPresentException, NoSuchElementException
 from selenium.webdriver import Keys
@@ -119,6 +120,7 @@ def grab_tickets():
         driver.get(selected_time.get_attribute('href'))
     except (TimeoutException, NoSuchElementException):
         print('Time not available, please select manually.')
+        playsound('ding.wav')
         while True:
             try:
                 wait.until(ec.url_contains('https://www.miramarcinemas.tw/Booking/'))
@@ -144,24 +146,36 @@ def grab_tickets():
     driver_click(
         (By.XPATH, "/html/body/div[1]/section[3]/section/div/div/div[2]/form/div[5]/label"))
     seats = utils.get_seats()
+    checkout = True
     for seat in seats:
         selected = (By.XPATH,
                     f"/html/body/div[1]/section[3]/section[2]/div/div/div/table/tbody/tr[{seat[0]}]/td[{seat[1]}]")
         if driver_get_background_color(selected) == 'rgba(128, 128, 128, 1)':
             print(f"Seat {seat[2]} is not available.")
+            checkout = False
+            playsound('ding.wav')
             continue
         else:
             driver_click(selected)
             print(f"Seat {seat[2]} selected.")
-    driver_click((By.XPATH, "/html/body/div[1]/section[3]/section[2]/div/form/div/label[2]"))
+    if not checkout:
+        print('-------------------------------------')
+        print('Some seats are not available, please select manually.')
+        while True:
+            try:
+                wait.until(ec.url_contains('https://www.miramarcinemas.tw/Booking/Confirm'))
+                break
+            except TimeoutException:
+                continue
+    else:
+        driver_click((By.XPATH, "/html/body/div[1]/section[3]/section[2]/div/form/div/label[2]"))
     if config.get("invoice") != '':
         driver_send_keys((By.ID, "invoice_vehicle"), config.get("invoice"))
     driver_send_keys((By.ID, "AgreeRule"), Keys.SPACE)
-    time.sleep(60)
 
 
 if __name__ == "__main__":
     login()
-    time.sleep(10000)
+    time.sleep(9999999999)
     print('Time out, quit.')
     driver.quit()
