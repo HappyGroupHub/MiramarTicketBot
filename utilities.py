@@ -1,7 +1,6 @@
 """This python file will handle some extra functions."""
 import json
 import sys
-from datetime import datetime, timedelta
 from os.path import exists
 
 import yaml
@@ -24,12 +23,6 @@ def config_file_generator():
 # Enter the date and time you want to book.
 date: '8/3'
 time: '23:10'
-# Buffer time mode can be before, after or around.
-# Minute range is the range of time buffer.
-# Example: 10:00, buffer_time_mode: 'before', minute_range: 30 => 9:30 ~ 10:00
-# Example: 10:00, buffer_time_mode: 'around', minute_range: 30 => 9:30 ~ 10:30
-buffer_time_mode: 'around'
-minute_range: 30
 
 # Tickets selection
 # Please enter the amount of ticket you want to book.
@@ -76,8 +69,6 @@ def read_config():
             config = {
                 'date': data['date'],
                 'time': data['time'],
-                'buffer_time_mode': data['buffer_time_mode'],
-                'minute_range': data['minute_range'],
                 'imax_adults': data['imax_adults'],
                 'imax_students': data['imax_students'],
                 'imax_seniors': data['imax_seniors'],
@@ -87,10 +78,6 @@ def read_config():
                 'headless': data['headless']
             }
             config['cn_date'] = config['date'].replace('/', '月') + '日'
-            start_time, end_time = get_buffered_time(config['time'], config['buffer_time_mode'],
-                                                     config['minute_range'])
-            config['start_time'] = start_time.strftime("%H:%M")
-            config['end_time'] = end_time.strftime("%H:%M")
             return config
     except (KeyError, TypeError):
         print(
@@ -141,25 +128,6 @@ def read_cookies():
             "An error occurred while reading cookies.json, please check if the file is corrected filled.\n"
             "If the problem can't be solved, consider delete cookies.json and restart the program.\n")
         sys.exit()
-
-
-def get_buffered_time(selected_time, buffer_time_mode, minute_range):
-    """Get buffered time.
-
-    :param selected_time: Time.
-    :param buffer_time_mode: Buffer time mode, before , after or around.
-    :param minute_range: Minute range.
-    """
-    selected_time = datetime.strptime(selected_time, "%H:%M")
-    start_time = end_time = selected_time
-    if buffer_time_mode == 'before':
-        start_time = selected_time - timedelta(minutes=minute_range)
-    elif buffer_time_mode == 'after':
-        end_time = selected_time + timedelta(minutes=minute_range)
-    elif buffer_time_mode == 'around':
-        start_time = selected_time - timedelta(minutes=minute_range)
-        end_time = selected_time + timedelta(minutes=minute_range)
-    return start_time, end_time
 
 
 def get_seats():
