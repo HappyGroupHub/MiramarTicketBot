@@ -1,8 +1,6 @@
 """This python file is the main file of the program."""
-import sys
 import time
 
-from playsound import playsound
 from selenium import webdriver
 from selenium.common import TimeoutException, NoAlertPresentException, NoSuchElementException
 from selenium.webdriver import Keys
@@ -95,38 +93,56 @@ def login():
         alert = driver.switch_to.alert
         alert.accept()
     except (TimeoutException, NoAlertPresentException):
+        print('-------------------------------------')
         print(
-            "Login Failed, cookies might not be correct or expired, please login manually then copy cookies value to cookies.json")
-        # driver.quit()
-        # sys.exit()
-        driver.get('https://www.miramarcinemas.tw/Member/Login')
-        driver_send_keys((By.ID, "Account"), '123')
-        driver_send_keys((By.ID, "Password"), '123')
-        time.sleep(1)
-        driver_send_keys((By.ID, "recaptcha-anchor"), Keys.SPACE)
-        time.sleep(10000)
+            "Login Failed, cookies might not be correct or expired, please login manually.")
+        print(
+            "If you can't login from this browser, please login from your local browser then copy cookies value to cookies.json.")
+        driver.delete_all_cookies()
+        driver.refresh()
+        driver_send_keys((By.ID, "Account"), config['email'])
+        driver_send_keys((By.ID, "Password"), config['password'])
+        utils.play_ding_sound()
+        print('Waiting for login...')
+        while True:
+            try:
+                alert = driver.switch_to.alert
+                alert.accept()
+                request_verification_token = driver.get_cookie('__RequestVerificationToken')[
+                    'value']
+                asp_net_session_id = driver.get_cookie('ASP.NET_SessionId')['value']
+                utils.update_cookies(request_verification_token, asp_net_session_id)
+                print('Success! new cookies saved to cookies.json.')
+                break
+            except (TimeoutException, NoAlertPresentException):
+                continue
     print('-------------------------------------')
-    print("Login Success!")
+    print("Successfully Logged In!")
     grab_tickets()
 
 
 def grab_tickets():
     driver.get('https://www.miramarcinemas.tw/Timetable/Index?cinema=imax')
+    print('-------------------------------------')
+    print('Trying to select desired date...')
     while True:
         try:
             driver.find_element(By.XPATH, f"//*[contains(text(), '{config.get('date')}')]").click()
+            print(f"Date selected: {config.get('date')}")
             break
         except (TimeoutException, NoSuchElementException):
             time.sleep(1)
             driver.refresh()
+    print('Trying to select desired time...')
     try:
         selected_time = driver.find_element(By.XPATH,
                                             f"//div[contains(@class, '{config['cn_date']}')]"
                                             f"//a[contains(text(), '{config['time']}')]")
+        print(f"Time selected: {config.get('time')}")
         driver.get(selected_time.get_attribute('href'))
     except (TimeoutException, NoSuchElementException):
         print('Time not available, please select manually.')
-        playsound('ding.wav')
+        utils.play_ding_sound()
         while True:
             try:
                 wait.until(ec.url_contains('https://www.miramarcinemas.tw/Booking/'))
@@ -159,7 +175,7 @@ def grab_tickets():
         if driver_get_background_color(selected) == 'rgba(128, 128, 128, 1)':
             print(f"Seat {seat[2]} is not available.")
             checkout = False
-            playsound('ding.wav')
+            utils.play_ding_sound()
             continue
         else:
             driver_click(selected)
@@ -178,6 +194,10 @@ def grab_tickets():
     if config.get("invoice") != '':
         driver_send_keys((By.ID, "invoice_vehicle"), config.get("invoice"))
     driver_send_keys((By.ID, "AgreeRule"), Keys.SPACE)
+    utils.play_ding_sound()
+    print('-------------------------------------')
+    print('All done! Please checkout manually.')
+    print('Seats have been locked for 10 minutes, take your time.')
 
 
 if __name__ == "__main__":
