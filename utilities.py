@@ -13,7 +13,7 @@ def config_file_generator():
     """Generate the template of config file"""
     with open('config.yml', 'w', encoding="utf8") as f:
         f.write("""# ++--------------------------------++
-# | MiramarTicketBot                 |
+# | MiramarTicketBot  v1.0           |
 # | Made by LD (MIT License)         |
 # ++--------------------------------++
 
