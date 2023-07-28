@@ -170,14 +170,21 @@ def get_seats():
             print(f"Seat {seat} is not valid, please fix it in config.yml.")
             sys.exit()
         temp = []
-        if int(seat_table[seat[0:1]]) <= 13 and int(seat[1:]) <= 11:
+        if seat == 'HW1':
+            temp = [10, 38, seat]
+        elif seat == 'HW2':
+            temp = [11, 38, seat]
+        elif int(seat_table[seat[0:1]]) <= 13 and int(seat[1:]) <= 11:
             temp = [seat_table[seat[0:1]], int(seat[1:]), seat]
         elif int(seat_table[seat[0:1]]) <= 13 and 14 <= int(seat[1:]) <= 25:
             temp = [seat_table[seat[0:1]], int(seat[1:]) + 1, seat]
-        elif int(seat_table[seat[0:1]]) <= 13 and 28 <= int(seat[1:]) <= 37:
+        elif int(seat_table[seat[0:1]]) <= 13 and 28 <= int(seat[1:]) <= 38:
             temp = [seat_table[seat[0:1]], int(seat[1:]) + 2, seat]
         elif int(seat[1:]) >= 21:
             temp = [seat_table[seat[0:1]], int(seat[1:]), seat]
+        else:
+            print(f"Seat {seat} is not valid, please fix it in config.yml.")
+            sys.exit()
         seats_list.append(temp)
     return seats_list
 
